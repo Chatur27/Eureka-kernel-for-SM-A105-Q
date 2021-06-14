@@ -265,6 +265,10 @@ err_pll_list_allocation:
 }
 
 static int always_enable = 1;
+#ifdef CONFIG_BYPASS_CPU_THROTTLING
+static int big_bypass_frequency = 2184000;
+static int little_bypass_frequency = 1690000;
+#endif
 
 static int ect_parse_voltage_table(int parser_version, void **address, struct ect_voltage_domain *domain, struct ect_voltage_table *table)
 {
@@ -560,35 +564,20 @@ static int ect_parse_ap_thermal_function(int parser_version, void *address, stru
 		ect_parse_integer(&address, &range->upper_bound_temperature);
 		ect_parse_integer(&address, &range->max_frequency);
 		
-		if (range->max_frequency == 2184000) //for big cores
-			range->max_frequency = 2184000;
-		else if (range->max_frequency == 2080000) //for big cores
-			range->max_frequency = 2184000;
-		else if (range->max_frequency == 1976000) //for big cores
-			range->max_frequency = 2184000;
-		else if (range->max_frequency == 1872000) //for big cores
-			range->max_frequency = 2184000;
-		else if (range->max_frequency == 1794000) //for little cores
-			range->max_frequency = 1794000;
-		else if (range->max_frequency == 1768000) //for big cores
-			range->max_frequency = 2184000;
-		else if (range->max_frequency == 1690000) //for little cores
-			range->max_frequency = 1690000;
-		else if (range->max_frequency == 1664000) //for big cores
-			range->max_frequency = 2184000;
-		else if (range->max_frequency == 1586000) //for little cores
-			range->max_frequency = 1690000;
-		else if (range->max_frequency == 1560000) //for big cores
-			range->max_frequency = 2184000;
-		else if (range->max_frequency == 1482000) //for little cores
-			range->max_frequency = 1690000;
-		else if (range->max_frequency == 1352000) //for little cores but conflicts with big cores' frequency
-			range->max_frequency = 1690000;
-		else if (range->max_frequency == 1144000) //for little cores
-			range->max_frequency = 1690000;
-		else if (range->max_frequency == 728000) //for big cores
-			range->max_frequency = 2184000;
-		
+#ifdef CONFIG_BYPASS_CPU_THROTTLING
+		//for big cores
+		if (range->max_frequency == 2184000||range->max_frequency == 2080000||range->max_frequency == 1976000)
+			range->max_frequency = big_bypass_frequency;
+		else if (range->max_frequency == 1872000||range->max_frequency == 1768000||range->max_frequency == 1664000)
+			range->max_frequency = big_bypass_frequency;
+		else if (range->max_frequency == 1560000||range->max_frequency == 728000)
+			range->max_frequency = big_bypass_frequency;
+		//for little cores
+		else if (range->max_frequency == 1794000||range->max_frequency == 1690000||range->max_frequency == 1586000)
+			range->max_frequency = little_bypass_frequency;
+		else if (range->max_frequency == 1482000||range->max_frequency == 1352000||range->max_frequency == 1144000)
+			range->max_frequency = little_bypass_frequency;
+#endif
 		ect_parse_integer(&address, &range->sw_trip);
 		ect_parse_integer(&address, &range->flag);
 	}
