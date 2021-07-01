@@ -222,6 +222,13 @@ static int cpufreq_thermal_notifier(struct notifier_block *nb,
 		 * need to do anything.
 		 */
 		clipped_freq = cpufreq_dev->clipped_freq;
+#ifdef CONFIG_BYPASS_CPU_THROTTLING
+		if (clipped_freq == 2184000)
+			clipped_freq = 2288000;
+		else if (clipped_freq == 1690000)
+			clipped_freq = 1794000;
+		else clipped_freq = cpufreq_dev->clipped_freq;
+#endif
 
 		if (policy->max > clipped_freq) {
 			cpufreq_verify_within_limits(policy, 0, clipped_freq);
